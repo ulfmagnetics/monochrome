@@ -1,24 +1,30 @@
 from os import path
 from PIL import Image
+import numpy
 
-im = Image.open('test/fixtures/cat.jpg')
-print(im.format, im.size, im.mode)
+src = Image.open('test/fixtures/cat.jpg')
+print(src.format, src.size, src.mode)
 
-# TODO: convert the image to a single color channel
+src = src.convert('L') # monochrome
+dest = Image.new('L', src.size, color=0)
 
-# TODO: determine tile size that works based on image size
-TILE_WIDTH = 100
-TILE_HEIGHT = 100
+# TODO: determine tile size that works based on srcage size
+TILE_WIDTH = 15
+TILE_HEIGHT = 15
 TILE_DIR = 'tmp/'
 
 n = 1
-for x in range(0, im.size[0], TILE_WIDTH):
-    for y in range(0, im.size[1], TILE_HEIGHT):
+for x in range(0, src.size[0], TILE_WIDTH):
+    for y in range(0, src.size[1], TILE_HEIGHT):
         bounds = x, y, x + TILE_WIDTH, y + TILE_HEIGHT
-        tile = im.crop(bounds)
+        tile = src.crop(bounds)
 
-        # TODO: calculate a single value to represent how much of the single color is in this tile
+        avg = int(numpy.average(tile.getdata()))
+        avgtile = Image.new('L', tile.size, color=avg)
+        dest.paste(avgtile, bounds)
+        print('Filled tile %d with avg value %d' % (n, avg))
 
-        filename = path.join(TILE_DIR, 'tile%d.jpg' % n)
-        tile.save(filename)
         n = n + 1
+
+filename = path.join(TILE_DIR, 'averaged-cat.jpg')
+dest.save(filename)
