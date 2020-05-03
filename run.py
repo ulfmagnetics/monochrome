@@ -8,10 +8,13 @@ print(src.format, src.size, src.mode)
 src = src.convert('L') # monochrome
 dest = Image.new('L', src.size, color=0)
 
+OUTPUT_DIR = 'tmp/'
+
 # TODO: determine tile size that works based on srcage size
-TILE_WIDTH = 15
-TILE_HEIGHT = 15
-TILE_DIR = 'tmp/'
+TILE_WIDTH = 6
+TILE_HEIGHT = 12
+BACKGROUND_COLOR = 160
+FILL_COLOR = 255
 
 n = 1
 for x in range(0, src.size[0], TILE_WIDTH):
@@ -20,11 +23,20 @@ for x in range(0, src.size[0], TILE_WIDTH):
         tile = src.crop(bounds)
 
         avg = int(numpy.average(tile.getdata()))
-        avgtile = Image.new('L', tile.size, color=avg)
+
+        # simplest approach: just fill the tile with the average color
+        #avgtile = Image.new('L', tile.size, color=avg)
+
+        avgtile = Image.new('L', tile.size)
+        data = numpy.full((TILE_WIDTH, TILE_HEIGHT), BACKGROUND_COLOR)
+        height = int(TILE_HEIGHT * (avg / 255))
+        data[0:height-1] = FILL_COLOR
+        avgtile.putdata(data.flatten())
+
         dest.paste(avgtile, bounds)
-        print('Filled tile %d with avg value %d' % (n, avg))
+        print('Filled tile %d to height %d' % (n, height))
 
         n = n + 1
 
-filename = path.join(TILE_DIR, 'averaged-cat.jpg')
+filename = path.join(OUTPUT_DIR, 'averaged-cat.jpg')
 dest.save(filename)
