@@ -10,10 +10,12 @@ parser.add_argument('--tileheight', dest='tile_height', type=int, default=12, he
 parser.add_argument('--bgcolor', dest='background_color', type=int, default=190, help='Background color for the rendered image')
 parser.add_argument('--fillcolor', dest='fill_color', type=int, default=255, help='Fill color for the rendered image')
 parser.add_argument('--outputdir', dest='output_dir', default='tmp/', help='Directory in which to output the rendered imag')
+parser.add_argument('-v', '--verbose', dest='verbose', action='store_true')
 args = parser.parse_args()
 
 src = Image.open(args.infile)
-print(src.format, src.size, src.mode)
+if args.verbose:
+    print('Input file %s: format=%s, size=%s, mode=%s' % (args.infile, src.format, src.size, src.mode))
 
 src = src.convert('L') # monochrome
 dest = Image.new('L', src.size, color=0)
@@ -36,9 +38,12 @@ for x in range(0, src.size[0], args.tile_width):
         avgtile.putdata(data.flatten())
 
         dest.paste(avgtile, bounds)
-        print('Filled tile %d to height %d' % (n, height))
+
+        if args.verbose:
+            print('Filled tile %d to height %d' % (n, height))
 
         n = n + 1
 
 filename = path.join(args.output_dir, 'output.jpg')
 dest.save(filename)
+print('Saved output file to %s' % filename)
